@@ -1,0 +1,34 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare static site
+        run: |
+          set -e
+          mkdir -p site/static
+          # Replace Flask url_for placeholders with direct static paths
+          sed "s/{{ url_for('static', filename='style.css') }}/static\/style.css/g; s/{{ url_for('static', filename='script.js') }}/static\/script.js/g" templates/index.html > site/index.html
+          # Copy static assets
+          if [ -d static ]; then
+            cp -r static/* site/static/ || true
+          fi
+          # Include README for a simple landing if present
+          if [ -f README.md ]; then
+            cp README.md site/README.md
+          fi
+
+      - name: Deploy to GitHub Pages (gh-pages branch)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
