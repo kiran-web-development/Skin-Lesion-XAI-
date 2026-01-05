@@ -1,0 +1,37 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+.venv2/
+venv/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# PyTorch / model checkpoints
+models/
+*.pt
+
+# Data
+data/
+lime_outputs/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env

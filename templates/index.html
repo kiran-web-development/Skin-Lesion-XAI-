@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Lesion Classification with LIME</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Skin Lesion Classification</h1>
+            <p>AI-powered dermoscopic image analysis with explainable predictions (LIME)</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="upload-box">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h2>Upload Dermoscopic Image</h2>
+                    <p>Supported formats: JPG, JPEG, PNG, GIF, BMP</p>
+                    <input type="file" id="imageInput" accept="image/*" />
+                    <label for="imageInput" class="upload-btn">Choose Image</label>
+                </div>
+            </div>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Analyzing image and generating explanations...</p>
+            </div>
+
+            <div id="results" class="results hidden">
+                <div class="results-grid">
+                    <div class="image-section">
+                        <h3>Input Image</h3>
+                        <img id="inputImage" src="" alt="Input image" />
+                    </div>
+
+                    <div class="prediction-section">
+                        <h3>Classification Result</h3>
+                        <div class="prediction-box">
+                            <div class="predicted-class" id="predictedClass">--</div>
+                            <div class="confidence-bar">
+                                <div id="confidenceBar" class="confidence-fill" style="width: 0%"></div>
+                            </div>
+                            <p id="confidenceText">Confidence: 0%</p>
+                        </div>
+
+                        <h3>All Probabilities</h3>
+                        <div id="probabilitiesList" class="probabilities-list"></div>
+                    </div>
+                </div>
+
+                <div class="explanation-section">
+                    <h3>LIME Explanation (Feature Importance)</h3>
+                    <p class="explanation-text">The highlighted regions show the image features most influential to the model's prediction.</p>
+                    <img id="limeExplanation" src="" alt="LIME explanation" />
+                </div>
+
+                <button onclick="resetForm()" class="reset-btn">Analyze Another Image</button>
+            </div>
+
+            <div id="errorMsg" class="error hidden"></div>
+        </main>
+
+        <footer>
+            <p>ResNet-18 classifier on ISIC 2019 dataset | Explainability via LIME</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
