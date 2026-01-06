@@ -2,18 +2,17 @@
 
 import os
 import sys
-import torch
+import os
+import sys
 import numpy as np
 from PIL import Image
 from flask import Flask, render_template, request, jsonify
 from werkzeug.utils import secure_filename
-from lime import lime_image
-from skimage.segmentation import mark_boundaries
 import io
 import base64
 import requests
 import tempfile
-from torchvision import transforms
+import threading
 from PIL import ImageDraw, ImageFont
 
 # Add src directory to path for imports
@@ -35,17 +34,47 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Global model and preprocessor
 model = None
 preprocess = None
+# Lazy-load synchronization
+model_loaded = False
+model_lock = threading.Lock()
 
 def load_model():
     """Load the trained model"""
-    global model
+    global model, preprocess, torch, transforms, lime_image, mark_boundaries, model_loaded
+    # Import heavy ML libraries here to avoid startup delay
+    import torch as _torch
+    from torchvision import transforms as _transforms
+    from lime import lime_image as _lime_image
+    from skimage.segmentation import mark_boundaries as _mark_boundaries
+
+    globals()['torch'] = _torch
+    globals()['transforms'] = _transforms
+    globals()['lime_image'] = _lime_image
+    globals()['mark_boundaries'] = _mark_boundaries
+
     model = get_resnet18_model(pretrained=False)
     model_path = os.path.join(models_dir, 'best_model.pt')
     if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found at {model_path}. Set MODEL_URL env var to enable automatic download.")
-    model.load_state_dict(torch.load(model_path, map_location=device))
+        # try to download if MODEL_URL is set
+        model_url = os.environ.get('MODEL_URL')
+        if model_url:
+            download_model_from_url(model_url, model_path)
+        else:
+            raise FileNotFoundError(f"Model file not found at {model_path}. Set MODEL_URL env var to enable automatic download.")
+
+    model.load_state_dict(_torch.load(model_path, map_location=device))
     model = model.to(device)
     model.eval()
+
+    # prepare preprocess pipeline
+    preprocess = _transforms.Compose([
+        _transforms.Resize((IMG_SIZE, IMG_SIZE)),
+        _transforms.ToTensor(),
+        _transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+    ])
+    model_loaded = True
+
+    print("Model and ML libraries loaded.")
 
 def download_model_from_url(url, dest_path, chunk_size=8192):
     ensure_dir(os.path.dirname(dest_path))
@@ -63,11 +92,16 @@ def download_model_from_url(url, dest_path, chunk_size=8192):
 
 def get_preprocess():
     """Get preprocessing pipeline"""
-    return transforms.Compose([
-        transforms.Resize((IMG_SIZE, IMG_SIZE)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
-    ])
+    global preprocess
+    if preprocess is None:
+        # This will import transforms if load_model hasn't been called yet
+        from torchvision import transforms as _transforms
+        preprocess = _transforms.Compose([
+            _transforms.Resize((IMG_SIZE, IMG_SIZE)),
+            _transforms.ToTensor(),
+            _transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
+        ])
+    return preprocess
 
 def allowed_file(filename):
     """Check if file has allowed extension"""
@@ -157,6 +191,12 @@ def predict_route():
         img = Image.open(file.stream).convert('RGB')
         img_np = np.array(img)
         
+        # Ensure model is loaded (lazy-load)
+        if not model_loaded:
+            with model_lock:
+                if not model_loaded:
+                    load_model()
+
         # Predict
         pred_class, probabilities = predict(img)
         pred_name = CLASSES[pred_class]
@@ -189,28 +229,8 @@ def predict_route():
 
 @app.route('/health')
 def health():
-    
-    return jsonify({'status': 'ok', 'model': 'loaded' if model is not None else 'not_loaded'})
+    return jsonify({'status': 'ok', 'model': 'loaded' if model_loaded else 'not_loaded'})
 
 if __name__ == '__main__':
-    # Ensure model exists or download from MODEL_URL env var
-    model_path = os.path.join(models_dir, 'best_model.pt')
-    model_url = os.environ.get('MODEL_URL')
-    if not os.path.exists(model_path):
-        if model_url:
-            try:
-                download_model_from_url(model_url, model_path)
-            except Exception as e:
-                print(f"Failed to download model: {e}")
-        else:
-            print("Model not present and MODEL_URL not set. The app may not run inference.")
-
-    print("Loading model...")
-    try:
-        load_model()
-        print("Model loaded successfully!")
-    except Exception as e:
-        print(f"Warning: model failed to load: {e}")
-    print("Model loaded successfully!")
-    print("Starting Flask app on http://127.0.0.1:5000")
+    print("Starting Flask app on http://127.0.0.1:5000 (model will be loaded on first request)")
     app.run(debug=True, host='127.0.0.1', port=5000)
