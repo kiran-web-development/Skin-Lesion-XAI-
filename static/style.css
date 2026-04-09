@@ -42,6 +42,49 @@ main {
     padding: 40px;
 }
 
+/* Diseases Section */
+.diseases-section {
+    margin-bottom: 40px;
+    background: #f8f9ff;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+.diseases-section h2 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    text-align: center;
+}
+
+.diseases-section p {
+    color: #666;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1em;
+}
+
+.diseases-section ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.diseases-section li {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    font-size: 0.95em;
+}
+
+.diseases-section strong {
+    color: #667eea;
+}
+
 /* Upload Section */
 .upload-section {
     margin-bottom: 40px;

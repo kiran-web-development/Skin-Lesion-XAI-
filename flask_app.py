@@ -50,6 +50,34 @@ def get_preprocess():
         transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
     ])
 
+def is_dermoscopic_image(img):
+    """
+    Basic validation to check if the image is likely a dermoscopic image.
+    """
+    # Check minimum size (dermoscopic images are usually high resolution)
+    min_size = 224
+    if img.width < min_size or img.height < min_size:
+        return False, f"Image resolution too low. Please upload dermoscopic images with at least {min_size}x{min_size} pixels."
+    
+    # Check if image is in RGB mode
+    if img.mode != 'RGB':
+        return False, "Image must be in RGB color mode. Please upload a standard color dermoscopic image."
+    
+    # Additional check: ensure image is not too large (to prevent memory issues)
+    max_size = 1024
+    if img.width > max_size or img.height > max_size:
+        return False, f"Image too large. Please upload dermoscopic images smaller than {max_size}x{max_size} pixels."
+    
+    # Simple color check: dermoscopic images often have skin tones
+    # Convert to numpy array and check average color
+    img_array = np.array(img)
+    avg_color = np.mean(img_array, axis=(0, 1))
+    # Skin tones are typically in certain RGB ranges
+    if not (avg_color[0] > 100 and avg_color[1] > 80 and avg_color[2] > 70):  # Rough skin tone check
+        return False, "Image does not appear to be a dermoscopic skin image. Please upload a proper dermoscopic image of skin lesions."
+    
+    return True, ""
+
 def allowed_file(filename):
     """Check if file has allowed extension"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -132,10 +160,16 @@ def predict_route():
             return jsonify({'error': 'No selected file'}), 400
         
         if not allowed_file(file.filename):
-            return jsonify({'error': 'Invalid file type. Allowed: ' + ', '.join(ALLOWED_EXTENSIONS)}), 400
+            return jsonify({'error': 'Invalid file type. Please upload dermoscopic images only (JPG, PNG, GIF, BMP).'}), 400
         
         # Read and process image
         img = Image.open(file.stream).convert('RGB')
+        
+        # Validate if it's a dermoscopic image
+        is_valid, validation_msg = is_dermoscopic_image(img)
+        if not is_valid:
+            return jsonify({'error': validation_msg}), 400
+        
         img_np = np.array(img)
         
         # Predict

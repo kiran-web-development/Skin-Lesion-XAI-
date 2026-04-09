@@ -1,4 +1,4 @@
-B # Requirements for Skin Lesion XAI Project
+# Requirements for Skin Lesion XAI Project
 
 torch>=1.10.0
 torchvision>=0.11.0

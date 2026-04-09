@@ -13,6 +13,21 @@
             <p>AI-powered dermoscopic image analysis with explainable predictions (LIME)</p>
         </header>
 
+        <section class="diseases-section">
+            <h2>Disease Classes Used in This Project</h2>
+            <p>The model classifies skin lesions into the following categories based on the ISIC 2019 dataset and HAM10000 dataset :</p>
+            <ul>
+                <li><strong>AKIEC:</strong> Actinic Keratosis Intraepithelial Carcinoma</li>
+                <li><strong>BCC:</strong> Basal Cell Carcinoma</li>
+                <li><strong>BKL:</strong> Benign Keratoses</li>
+                <li><strong>DF:</strong> Dermatofibroma</li>
+                <li><strong>MEL:</strong> Melanoma</li>
+                <li><strong>NV:</strong> Melanocytic Nevi</li>
+                <li><strong>SCC:</strong> Squamous Cell Carcinoma</li>
+                <li><strong>VASC:</strong> Vascular Lesions</li>
+            </ul>
+        </section>
+
         <main>
             <div class="upload-section">
                 <div class="upload-box">
@@ -22,7 +37,7 @@
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
                     <h2>Upload Dermoscopic Image</h2>
-                    <p>Supported formats: JPG, JPEG, PNG, GIF, BMP</p>
+                    <p>Supported formats: JPG, JPEG, PNG, GIF, BMP (Dermoscopic images only)</p>
                     <input type="file" id="imageInput" accept="image/*" />
                     <label for="imageInput" class="upload-btn">Choose Image</label>
                 </div>
@@ -68,7 +83,7 @@
         </main>
 
         <footer>
-            <p>ResNet-18 classifier on ISIC 2019 dataset | Explainability via LIME</p>
+            <p>ResNet-50 classifier on ISIC 2019 dataset | HAM10000 dataset |Explainability via LIME</p>
         </footer>
     </div>
 

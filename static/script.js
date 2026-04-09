@@ -7,7 +7,7 @@ function handleImageUpload(event) {
     // Validate file
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'];
     if (!allowedTypes.includes(file.type)) {
-        showError('Invalid file type. Please upload JPG, PNG, GIF, or BMP.');
+        showError('Invalid file type. Please upload dermoscopic images only (JPG, PNG, GIF, BMP).');
         return;
     }
 
