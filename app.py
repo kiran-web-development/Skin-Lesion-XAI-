@@ -5,9 +5,6 @@ import torch
 from PIL import Image
 import numpy as np
 import os
-import sys
-# ensure `src` is on path so `from config import ...` works when running from repo root
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 from config import models_dir, CLASSES, device, IMG_SIZE, IMAGENET_MEAN, IMAGENET_STD, lime_dir
 from model import get_resnet18_model
 from torchvision import transforms

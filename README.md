@@ -4,62 +4,209 @@ This repository implements the IEEE Access 2022 paper:
 
 **“A Deep Learning Approach Based on Explainable Artificial Intelligence for Skin Lesion Classification”**
 
-using ResNet-18 and LIME for the ISIC 2019 dataset.
+using ResNet-50 and LIME for the ISIC 2019 and HAM10000 skin lesion datasets.
+
+## Overview
+
+This project trains a convolutional neural network to classify skin lesion images into 8 diagnostic categories. It also generates LIME explanations for model predictions so users can visualize which image regions influenced the decision.
+
+## Disease Classes
+
+The model predicts the following skin lesion types:
+
+-   **AKIEC**: Actinic Keratoses and Intraepithelial Carcinoma
+-   **BCC**: Basal Cell Carcinoma
+-   **BKL**: Benign Keratosis-like Lesions
+-   **DF**: Dermatofibroma
+-   **MEL**: Melanoma
+-   **NV**: Melanocytic Nevi
+-   **SCC**: Squamous Cell Carcinoma
+-   **VASC**: Vascular Lesions
+
+## Dataset
+
+-   **ISIC 2019**: 25,331 dermoscopic images, 8 classes (AKIEC, BCC, BKL, DF, MEL, NV, SCC, VASC)
+-   **HAM10000**: 10,015 dermoscopic images, 7 classes (akiec, bcc, bkl, df, mel, nv, vasc)
+-   Severe class imbalance handled as per the paper
+-   Combined training supports both datasets with unified 8-class classification
 
 ## Project Structure
 
 ```
-skin_lesion_xai/
-├── data/
-│   ├── raw/ISIC2019/
-│   ├── processed/
-├── models/
-├── lime_outputs/
-├── src/
-│   ├── config.py
-│   ├── dataset.py
-│   ├── preprocessing.py
-│   ├── augmentation.py
-│   ├── model.py
-│   ├── train.py
-│   ├── evaluate.py
-│   ├── explain_lime.py
-│   └── utils.py
-├── app.py (optional demo)
-├── requirements.txt
-└── README.md
+skin_lesion_xai/├── app.py               # Streamlit demo app├── flask_app.py         # Flask demo app├── data/│   ├── raw/│   │   ├── ISIC2019/    # raw ISIC 2019 images│   │   └── HAM10000/    # raw HAM10000 images│   ├── processed/       # preprocessed dataset artifacts├── lime_outputs/        # generated LIME explanation outputs├── models/│   └── best_model.pt    # trained PyTorch model file├── requirements.txt├── README.md└── src/    ├── augmentation.py    ├── config.py    ├── dataset.py    ├── evaluate.py    ├── explain_lime.py    ├── make_split.py    ├── model.py    ├── organize_images.py    ├── preprocessing.py    ├── train.py    └── utils.py
 ```
 
-## Problem Statement
+## Clone the Project
 
-Automatic classification of skin lesions using deep learning, with post-hoc explainability via LIME, to assist dermatologists in diagnosis.
+To clone this repository from GitHub, run:
 
-## Dataset
+```bash
+git clone <repository-url>cd skin_lesion_xai
+```
 
-- **ISIC 2019**: 25,331 dermoscopic images, 8 classes (AKIEC, BCC, BKL, DF, MEL, NV, SCC, VASC)
-- Severe class imbalance handled as per the paper
+Replace `<repository-url>` with the actual URL of your GitHub repository.
 
-## Methodology
+## Requirements
 
-- **Preprocessing**: ROI cropping, zero-padding, resize (224x224), normalization (ImageNet stats)
-- **Augmentation**: Random flip, rotation, crop, color jitter
-- **Model**: ResNet-18 (ImageNet pretrained), 8-class head, transfer learning, fine-tuning
-- **Training**: Adam, lr=0.0001, batch=32, epochs=25-30, weighted loss, early stopping, CUDA
-- **Evaluation**: Accuracy, Precision, Recall, F1, Confusion Matrix
-- **Explainability**: LIME for superpixel-based explanations
+Install the Python dependencies with:
 
-## How to Run
+```bash
+pip install -r requirements.txt
+```
 
-1. Download ISIC 2019 dataset to `data/raw/ISIC2019/`
-2. Install requirements: `pip install -r requirements.txt`
-3. Preprocess and augment data: `python src/preprocessing.py`
-4. Train: `python src/train.py`
-5. Evaluate: `python src/evaluate.py`
-6. Generate explanations: `python src/explain_lime.py`
-7. (Optional) Run demo app: `python app.py`
+The main libraries used by this project are:
 
-See each script for more details.
+-   `torch` and `torchvision`
+-   `scikit-learn`
+-   `numpy`
+-   `pandas`
+-   `matplotlib`
+-   `opencv-python`
+-   `Pillow`
+-   `lime`
+-   `tqdm`
+-   `seaborn`
+-   `scipy`
+-   `streamlit` (for the Streamlit demo)
+-   `flask` (for the Flask demo)
+
+## Setup
+
+1.  Create and activate a virtual environment:
+    
+    ```powershell
+    python -m venv venv.venvScriptsActivate.ps1
+    ```
+    
+2.  Install packages:
+    
+    ```powershell
+    pip install -r requirements.txt
+    ```
+    
+3.  Download the ISIC 2019 dataset and place the images in:
+    
+    ```text
+    data/raw/ISIC2019/
+    ```
+    
+4.  (Optional) Download the HAM10000 dataset and place the images in:
+    
+    ```text
+    data/raw/HAM10000/
+    ```
+    
+    Ensure the metadata CSV is at `data/raw/HAM10000/HAM10000_metadata.csv` and images in `data/raw/HAM10000/HAM10000_images_part_1/` (or adjust paths in `src/organize_images.py`).
+    
+5.  If you already have a trained model, ensure `models/best_model.pt` exists before running demos.
+    
+
+## Running the Project
+
+### Preprocess the dataset
+
+```powershell
+python src/preprocessing.py
+```
+
+### Train the model
+
+```powershell
+python src/train.py
+```
+
+### Evaluate the model
+
+```powershell
+python src/evaluate.py
+```
+
+### Generate LIME explanations
+
+```powershell
+python src/explain_lime.py
+```
+
+### Run the Streamlit demo
+
+```powershell
+streamlit run app.py
+```
+
+### Run the Flask demo
+
+```powershell
+python flask_app.py
+```
+
+Then open the app in your browser at:
+
+```text
+http://127.0.0.1:5000
+```
+
+## Notes
+
+-   The trained model should load from `models/best_model.pt`.
+-   If you do not yet have a trained model, run `python src/train.py` first.
+-   The `data/processed/` folder is used for preprocessing output and split files.
+-   `lime_outputs/` stores explanation outputs generated by `src/explain_lime.py`.
+-   The web demo only accepts dermoscopic image files in JPG, JPEG, PNG, GIF, or BMP format and shows both short and full disease labels for predictions.
+-   This project supports training on both ISIC 2019 and HAM10000 datasets with unified 8-class classification (SCC is only in ISIC 2019).
+
+## Results
+
+The current trained model is saved as `models/best_model.pt`.
+
+### Evaluation Metrics
+
+The model evaluation run produced the following metrics on the validation split:
+
+-   **Accuracy**: 98.65%
+-   **Precision**: 98.68%
+-   **Recall**: 98.65%
+-   **F1-Score**: 98.65%
+
+### Generated Output Files
+
+-   `models/best_model.pt` — Trained PyTorch model weights
+-   `models/learning_curve.png` — Training and validation loss curve
+-   `models/confusion_matrix.png` — Confusion matrix heatmap from evaluation
+-   `lime_outputs/` — Generated LIME explanation images for prediction interpretability
+
+### Output Visualizations
+
+#### Training and evaluation plots
+
+![Learning Curve](./models/learning_curve.png)
+
+![Confusion Matrix](./models/confusion_matrix%20-%20Copy%20(2).png)
+
+
+> Note: these images render only when the referenced files exist in the repository or local workspace.
+
+### Explanation Outputs
+
+The LIME explanation pipeline is executed with:
+
+```powershell
+python src/explain_lime.py
+```
+
+This script produces interpretable visualizations showing which image regions most influenced the model's prediction. Example output files are saved in `lime_outputs/` with names like `<CLASS>_<IMAGE>_lime.png`.
+
+## Troubleshooting
+
+-   **`ModuleNotFoundError` when running scripts**: ensure your current folder is `skin_lesion_xai` and the virtual environment is activated.
+-   **`FileNotFoundError: models/best_model.pt`**: place a trained model at `models/best_model.pt` or train the model with `python src/train.py`.
+-   **Missing ISIC data files**: download the dataset and put the images under `data/raw/ISIC2019/`.
+-   **Missing HAM10000 data files**: download the dataset and put the images under `data/raw/HAM10000/`.
+-   **`ImportError` for `streamlit` or `flask`**: install dependencies with `pip install -r requirements.txt`.
+-   **Flask app not loading in browser**: confirm the app is running and open `http://127.0.0.1:5000`.
+-   **Slow or GPU not used**: verify PyTorch CUDA support using `python -c "import torch; print(torch.cuda.is_available())"`.
 
 ## References
-- [IEEE Access Paper](https://ieeexplore.ieee.org/document/9746140)
-- [ISIC 2019 Dataset](https://challenge2019.isic-archive.com/)
+
+-   [IEEE Access Paper](https://ieeexplore.ieee.org/document/9746140)
+-   [ISIC 2019 Dataset](https://challenge2019.isic-archive.com/)
+-   [HAM10000 Dataset](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/DBW86T)
